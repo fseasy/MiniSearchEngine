@@ -45,6 +45,14 @@ class Spider(object) :
             f = gzip.GzipFile(fileobj=buf)
             response_cont = f.read()
         return response_cont
+    
+    def abstract_title(self , soup) :
+        try :
+            title_tag = soup.head.title
+            title_txt = title_tag.string
+            return title_txt
+        except :
+            return ""
 
     def abstract_content(self , soup) :
         content = []
@@ -76,8 +84,16 @@ class Spider(object) :
     def processing_page(self , raw_page_content) :
         soup = BeautifulSoup(raw_page_content , "lxml")
         url_list = self.abstract_all_urls_from_soup(soup)
+        title = self.abstract_title(soup)
         content = self.abstract_content(soup)
-        return url_list , content
+        return url_list , title , content
+
+    def encapsulate_page4storing(self , url , title , content) :
+        return {
+                "url" : url ,
+                "title" : title ,
+                "content" : content
+                }
 
     def filter_seen_urls(self , url_list) :
         unseen_list = []
@@ -114,13 +130,13 @@ class Spider(object) :
             logging.info("crawling url : %s [%s]" %(target_url , crawling_cnt+1) )
             try :
                 page_content = self.crawl_page(target_url)
-                all_url_list , content = self.processing_page(page_content)
+                all_url_list , title , content = self.processing_page(page_content)
             except :
                 logging.warn("crawling error . skipped")
                 continue
             crawling_cnt += 1
             # storing
-            self.crawl_result[target_url] = content 
+            self.crawl_result[crawling_cnt] = self.encapsulate_page4storing(target_url , title , content)
             # udpate crawl queue
             unseen_urls = self.filter_seen_urls(all_url_list)
             self.update_seen_url_set(unseen_urls)
