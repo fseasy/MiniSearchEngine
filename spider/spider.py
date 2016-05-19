@@ -117,9 +117,11 @@ class Spider(object) :
         return filtered_url_list
 
     def save_data(self , write_path) :
+        logging.info("saving crawling data to `%s`" %(write_path))
         json_data = json.dumps(self.crawl_result , indent=4 , separators=(",",":"))
         with open(write_path , 'w') as f:
             f.write(json_data)
+        logging.info("done.")
 
     def crawl(self) :
         crawling_queue = Queue.LifoQueue() # LIFO ,  stack
