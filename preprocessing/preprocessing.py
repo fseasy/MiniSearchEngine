@@ -7,7 +7,7 @@ import logging
 import os
 import argparse
 from pyltp import Segmentor
-from preprocessing_config import CWS_MODEL_PATH , STOP_WORDS_DIR
+from preprocessing_config import CWS_MODEL_PATH , STOP_WORDS_DIR , SENT_SPLIT_SYMBOLS
 
 logging.basicConfig(level=logging.INFO)
 
@@ -30,6 +30,8 @@ class PreProcessor(object) :
                 for line in f :
                     word = line.strip()
                     stop_words.add(word)
+        for symbol in SENT_SPLIT_SYMBOLS :
+            stop_words.add(symbol)
         return stop_words
 
     def load_raw_data(self , path) :
@@ -43,7 +45,7 @@ class PreProcessor(object) :
         sents = []
         paras = content.split("\n")
         for paragraph in paras :
-            split_rst = re.split(ur"[,.?'。，？！“” ]+" , paragraph) # has space 
+            split_rst = re.split(ur"[%s]+" %(SENT_SPLIT_SYMBOLS) , paragraph) # has space 
             sents.extend(split_rst)
         return sents
     
@@ -81,6 +83,7 @@ class PreProcessor(object) :
             content_words = []
             for sent in sents :
                 content_words.extend(self._segment(sent))
+                content_words.append(" ") # another space to avoid that they become one line when merging at output snippet 
             self.processed_data[page_id] = self._make_doc_data(url , title_words , content_words)
             self._add_word2words_dict(title_words + content_words)
         logging.info('done.')
@@ -88,7 +91,7 @@ class PreProcessor(object) :
     def save_doc_data(self , to_path) :
         logging.info("saving doc data to ` %s `" %(to_path) )
         with open(to_path , 'w') as of:
-            json.dump(self.processed_data , of , ensure_ascii=False)
+            json.dump(self.processed_data , of )
         logging.info("done.")
 
     def save_words_dict(self , to_path) :

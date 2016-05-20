@@ -4,3 +4,5 @@
 CWS_MODEL_PATH = "/home/file/code/restful/onlinesystem/dependency/cws_model/cws.model"
 
 STOP_WORDS_DIR = "stop_words"
+
+SENT_SPLIT_SYMBOLS = u",.?'。，？！“” " # has space
